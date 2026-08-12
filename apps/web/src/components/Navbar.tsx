@@ -17,8 +17,10 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
   const isDashboard = location.pathname === '/dashboard';
   const isBlog = location.pathname.startsWith('/blog');
 
-  const formatAddress = (addr: string) => {
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+  // Truncate a DID or address for display
+  const formatIdentity = (id: string) => {
+    if (id.length <= 16) return id;
+    return `${id.substring(0, 8)}...${id.substring(id.length - 4)}`;
   };
 
   useEffect(() => {
@@ -142,7 +144,7 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
             </Link>
           </nav>
 
-          {/* Connect Wallet / Console CTAs */}
+          {/* Praman Auth Sign-in CTA */}
           <div className="hidden md:flex items-center space-x-4">
             {onConnectWallet && (
               <motion.button
@@ -162,10 +164,10 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
                 <Wallet className={`h-4 w-4 ${walletAddress ? 'animate-pulse' : ''}`} />
                 <span>
                   {isConnecting
-                    ? 'Connecting...'
+                    ? 'Verifying...'
                     : walletAddress
-                    ? formatAddress(walletAddress)
-                    : 'Connect Wallet'}
+                    ? formatIdentity(walletAddress)
+                    : 'Sign in with Praman'}
                 </span>
               </motion.button>
             )}

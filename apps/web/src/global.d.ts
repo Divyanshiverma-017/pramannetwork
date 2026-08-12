@@ -1,7 +1,3 @@
-interface Window {
-  ethereum?: any;
-}
-
 declare module '*.mdx' {
   const component: React.ComponentType<any>;
   export default component;

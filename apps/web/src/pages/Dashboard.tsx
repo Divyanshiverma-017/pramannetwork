@@ -23,6 +23,16 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar.tsx';
 import { supabase } from '../utils/supabaseClient.ts';
+import { initPraman } from '@praman-network/sdk';
+
+// Initialize once, shared across this page
+const praman = initPraman({
+  apiKey: import.meta.env.VITE_PRAMAN_API_KEY || 'pm_dev_your_api_key_here',
+  network: 'polygon-amoy',
+  idpUrl: 'http://localhost:5173', // Local identity-provider (AuthPramanNetwork) for testing.
+                                    // Change back to 'https://auth.praman.network' for production.
+  backendUrl: 'https://api.praman.network'
+});
 import SEO from '../components/SEO.tsx';
 import Footer from '../components/Footer.tsx';
 // Dynamic imports for Recharts to split vendor chunks and load on-demand
@@ -61,10 +71,14 @@ interface Toast {
 }
 
 export default function Dashboard() {
-  // Wallet states
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  // PramanAuth session state (replaces MetaMask wallet state).
+  // walletAddress/isConnecting/walletBalance are kept as derived values
+  // so the rest of this file (which references them ~15+ times for
+  // tab-gating and display) continues to work unchanged.
+  const [pramanUser, setPramanUser] = useState<{ did: string; token?: string } | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<string | null>(null);
+  const walletAddress = pramanUser?.did ?? null;
+  const walletBalance = null; // No wallet balance concept under PramanAuth
 
   // Loading state for initial fetch
   const [isAppsLoading, setIsAppsLoading] = useState(false);
@@ -102,36 +116,29 @@ export default function Dashboard() {
     }, 3000);
   };
 
-  // Auto-connect check on mount
+  // Restore an existing PramanAuth session on mount (replaces MetaMask auto-connect).
+  // NOTE: PramanClient has no getSession() method, so we persist the token
+  // ourselves in localStorage and re-verify it with verifyToken() on load.
   useEffect(() => {
-    const checkConnection = async () => {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' }) as string[];
-          if (accounts && accounts.length > 0) {
-            const address = accounts[0];
-            const balanceWeiHex = await window.ethereum.request({
-              method: 'eth_getBalance',
-              params: [address, 'latest']
-            }) as string;
-            
-            const wei = BigInt(balanceWeiHex);
-            const balanceEth = (Number(wei / 100000000000000n) / 10000).toFixed(4);
-            const balance = `${balanceEth} ETH`;
-            
-            setWalletAddress(address);
-            setWalletBalance(balance);
-            fetchAppsAndKeys(address);
-          }
-        } catch (err: any) {
-          console.error("Auto-connect check failed:", err);
-          if (err?.code === -32002) {
-            showToast("Network busy: Please change your RPC URL in MetaMask.", "error");
-          }
+    const checkSession = async () => {
+      const storedToken = localStorage.getItem('praman_session_token');
+      if (!storedToken) return;
+
+      try {
+        const result = praman.verifyToken(storedToken);
+        if (result.valid && result.payload) {
+          const did = result.payload.did || result.payload.sub;
+          setPramanUser({ did, token: storedToken });
+          fetchAppsAndKeys(did);
+        } else {
+          localStorage.removeItem('praman_session_token');
         }
+      } catch (err) {
+        console.error("Praman session check failed:", err);
+        localStorage.removeItem('praman_session_token');
       }
     };
-    checkConnection();
+    checkSession();
   }, []);
 
   // Fetch registered apps and their API keys from Supabase
@@ -142,7 +149,7 @@ export default function Dashboard() {
       const { data: appsData, error: appsError } = await supabase
         .from('developer_apps')
         .select('*')
-        .eq('wallet_address', address)
+        .eq('did', address) // NOTE: requires a `did` column on developer_apps (see migration note below)
         .order('created_at', { ascending: false });
         
       if (appsError) throw appsError;
@@ -300,49 +307,32 @@ export default function Dashboard() {
     }
   }, [activeTab, selectedAppId, walletAddress]);
 
-  // Connect Wallet handler via MetaMask BrowserProvider (ethers v6)
+  // Sign in via PramanAuth (replaces MetaMask connect entirely)
   const handleConnectWallet = async () => {
-    if (!window.ethereum) {
-      alert("MetaMask is not installed. Please install MetaMask to connect your wallet.");
-      return;
-    }
-    
     setIsConnecting(true);
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
-      if (accounts && accounts.length > 0) {
-        const address = accounts[0];
-        const balanceWeiHex = await window.ethereum.request({
-          method: 'eth_getBalance',
-          params: [address, 'latest']
-        }) as string;
-        
-        const wei = BigInt(balanceWeiHex);
-        const balanceEth = (Number(wei / 100000000000000n) / 10000).toFixed(4);
-        const balance = `${balanceEth} ETH`;
-        
-        setWalletAddress(address);
-        setWalletBalance(balance);
-        fetchAppsAndKeys(address);
-        showToast("Wallet connected successfully!");
+      const result = await praman.loginWithPopup({ scopes: ['email', 'profile'] });
+      if (result.success && result.user?.did) {
+        setPramanUser({ did: result.user.did, token: result.token });
+        localStorage.setItem('praman_session_token', result.token);
+        fetchAppsAndKeys(result.user.did);
+        showToast("Signed in with Praman successfully!");
+      } else {
+        showToast("Praman authentication failed.", "error");
       }
     } catch (err: any) {
-      console.error("Wallet connection failed:", err);
-      if (err?.code === -32002) {
-        showToast("Network busy: Please change your RPC URL in MetaMask.", "error");
-      } else {
-        showToast("Wallet connection failed.", "error");
-      }
+      console.error("Praman sign-in failed:", err);
+      showToast(err?.message || "Praman authentication failed.", "error");
     } finally {
       setIsConnecting(false);
     }
   };
 
   const handleDisconnectWallet = () => {
-    setWalletAddress(null);
-    setWalletBalance(null);
+    setPramanUser(null);
     setRegisteredApps([]);
-    showToast("Wallet disconnected.");
+    localStorage.removeItem('praman_session_token');
+    showToast("Signed out.");
   };
 
   // Register application to Supabase database & generate key
@@ -350,7 +340,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!appName) return;
     if (!walletAddress) {
-      showToast("Connect your wallet first.", "error");
+      showToast("Sign in with Praman first.", "error");
       return;
     }
 
@@ -361,7 +351,7 @@ export default function Dashboard() {
         .from('developer_apps')
         .insert([
           {
-            wallet_address: walletAddress,
+            did: walletAddress, // walletAddress now holds the Praman DID, not a wallet address
             app_name: appName,
             redirect_url: '', // We only require App Name now
           }
@@ -669,15 +659,15 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500">WALLET BALANCE</p>
-                  <p className="text-xs font-mono font-bold text-white break-all">{walletBalance}</p>
+                  <p className="text-[10px] text-slate-500">DID</p>
+                  <p className="text-xs font-mono font-bold text-white break-all">{walletAddress}</p>
                 </div>
                 <button 
                   onClick={handleDisconnectWallet}
                   className="w-full flex items-center justify-center space-x-1.5 py-1.5 border border-rose-950 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 rounded-lg text-xs transition-all font-semibold"
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  <span>Disconnect</span>
+                  <span>Sign out</span>
                 </button>
               </div>
             ) : (
@@ -687,7 +677,7 @@ export default function Dashboard() {
                 className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-bold uppercase tracking-wider text-slate-200 hover:border-[#00F0FF]/50 hover:text-[#00F0FF] transition-all duration-300 font-display"
               >
                 <Wallet className="h-4 w-4" />
-                <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
+                <span>{isConnecting ? 'Verifying...' : 'Sign in with Praman'}</span>
               </button>
             )}
           </div>
@@ -782,10 +772,10 @@ export default function Dashboard() {
               <div className="space-y-1">
                 <h3 className="text-white font-bold flex items-center space-x-2">
                   <Wallet className="h-5 w-5 text-amber-400" />
-                  <span>Connect Web3 Wallet</span>
+                  <span>Sign in with Praman</span>
                 </h3>
                 <p className="text-slate-400 text-sm">
-                  Please connect your Ethereum wallet to verify ownership, register client applications, and configure whitelist origins.
+                  Please sign in with PramanAuth to verify your identity, register client applications, and configure whitelist origins. No wallet connection required.
                 </p>
               </div>
               <motion.button
@@ -795,7 +785,7 @@ export default function Dashboard() {
                 className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center space-x-2 shrink-0 font-display transition-colors"
               >
                 <Wallet className="h-4 w-4" />
-                <span>Connect Wallet</span>
+                <span>Sign in with Praman</span>
               </motion.button>
             </motion.div>
           )}
@@ -863,7 +853,7 @@ export default function Dashboard() {
                       Verification Metrics
                     </h2>
                     <p className="text-slate-400 text-xs">
-                      Active cryptographic applications linked to this wallet.
+                      Active cryptographic applications linked to this identity.
                     </p>
                   </div>
 
