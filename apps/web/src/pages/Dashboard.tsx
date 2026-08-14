@@ -29,8 +29,7 @@ import { initPraman } from '@praman-network/sdk';
 const praman = initPraman({
   apiKey: import.meta.env.VITE_PRAMAN_API_KEY || 'pm_dev_your_api_key_here',
   network: 'polygon-amoy',
-  idpUrl: 'http://localhost:5173', // Local identity-provider (AuthPramanNetwork) for testing.
-                                    // Change back to 'https://auth.praman.network' for production.
+  idpUrl: 'https://auth.praman.network/',
   backendUrl: 'https://api.praman.network'
 });
 import SEO from '../components/SEO.tsx';
