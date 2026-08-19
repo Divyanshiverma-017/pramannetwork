@@ -17,10 +17,8 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
   const isDashboard = location.pathname === '/dashboard';
   const isBlog = location.pathname.startsWith('/blog');
 
-  // Truncate a DID or address for display
-  const formatIdentity = (id: string) => {
-    if (id.length <= 16) return id;
-    return `${id.substring(0, 8)}...${id.substring(id.length - 4)}`;
+  const formatAddress = (addr: string) => {
+    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
 
   useEffect(() => {
@@ -55,20 +53,12 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
             <img 
               src="/logo.png" 
               alt="Praman Network Logo" 
-              width="40"
-              height="40"
+              width="144"
+              height="48"
               fetchPriority="high"
               decoding="async"
-              className="h-10 w-10 object-contain mix-blend-screen transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 filter drop-shadow-[0_0_8px_rgba(13,242,201,0.4)]"
+              className="h-12 w-auto object-contain mix-blend-screen transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 filter drop-shadow-[0_0_8px_rgba(13,242,201,0.4)]"
             />
-            <div className="flex flex-col">
-              <span className="font-display font-bold text-lg leading-tight tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-[#0DF2C9]">
-                PRAMAN
-              </span>
-              <span className="text-[10px] tracking-[0.25em] text-[#0DF2C9] font-medium uppercase font-display">
-                Network
-              </span>
-            </div>
           </Link>
 
           {/* Navigation Links */}
@@ -152,7 +142,7 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
             </Link>
           </nav>
 
-          {/* Praman Auth Sign-in CTA */}
+          {/* Connect Wallet / Console CTAs */}
           <div className="hidden md:flex items-center space-x-4">
             {onConnectWallet && (
               <motion.button
@@ -172,10 +162,10 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
                 <Wallet className={`h-4 w-4 ${walletAddress ? 'animate-pulse' : ''}`} />
                 <span>
                   {isConnecting
-                    ? 'Verifying...'
+                    ? 'Connecting...'
                     : walletAddress
-                    ? formatIdentity(walletAddress)
-                    : 'Sign in with Praman'}
+                    ? formatAddress(walletAddress)
+                    : 'Connect Wallet'}
                 </span>
               </motion.button>
             )}

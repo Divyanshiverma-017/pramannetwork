@@ -95,7 +95,7 @@ export default function BentoGrid() {
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ type: "spring", stiffness: 100 }}
-          className="text-center max-w-3xl mx-auto space-y-4 mb-20"
+          className="text-center max-w-none mx-auto space-y-4 mb-20"
         >
           <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-white/5 bg-black/40 text-[9px] tracking-widest uppercase font-semibold text-[#00F0FF] font-mono">
             Protocol Capabilities

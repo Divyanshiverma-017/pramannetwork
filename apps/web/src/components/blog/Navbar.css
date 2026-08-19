@@ -13,6 +13,17 @@
   text-decoration: none;
 }
 
+.navbar-logo-img {
+  object-fit: contain;
+  mix-blend-screen;
+  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.35));
+  transition: transform 0.25s ease;
+}
+
+.navbar-logo:hover .navbar-logo-img {
+  transform: scale(1.08) rotate(-4deg);
+}
+
 .logo-shield {
   width: 32px;
   height: 32px;

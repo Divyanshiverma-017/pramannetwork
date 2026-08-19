@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Twitter, Linkedin, Github } from 'lucide-react';
+import { Twitter, Linkedin, Github } from 'lucide-react';
 import './Footer.css';
 
 export function Footer() {
@@ -10,11 +10,15 @@ export function Footer() {
           {/* Brand Col */}
           <div className="footer-brand">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="logo-shield"><Shield size={18} /></div>
-              <div className="logo-text-brand">
-                <span className="logo-praman">PRAMAN</span>
-                <span className="logo-network">NETWORK</span>
-              </div>
+              <img
+                src="/logo.png"
+                alt="Praman Network Logo"
+                width="108"
+                height="36"
+                loading="lazy"
+                decoding="async"
+                className="navbar-logo-img"
+              />
             </div>
 
             <p className="footer-tagline">

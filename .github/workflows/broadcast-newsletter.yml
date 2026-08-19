@@ -1,0 +1,33 @@
+name: Broadcast Newsletter
+
+on:
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/src/data/articleIndex.js' # Triggers automatically when a new article is added to the index
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Script Dependencies
+        working-directory: ./scripts
+        run: npm install
+
+      - name: Run Broadcast Script
+        working-directory: ./scripts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node broadcast_newsletter.js

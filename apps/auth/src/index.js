@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 });
 
 const allowedOrigins = [
-  'https://www.praman.network', 
+  'https://www.praman.network',
   'https://praman.network'
 ];
 
@@ -133,7 +133,7 @@ app.post("/api/v1/verify-zk", verifyApiKey, async (req, res) => {
 
   } catch (error) {
     console.error("Verification Route Error:", error);
-    
+
     // Log unexpected system errors
     try {
       await supabase.from('verification_logs').insert({
@@ -152,6 +152,79 @@ app.post("/api/v1/verify-zk", verifyApiKey, async (req, res) => {
       details: error.message,
       stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
     });
+  }
+});
+// Newsletter Subscription Route
+app.post("/api/v1/subscribe", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, error: "Email is required." });
+    }
+
+    // Server-side validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, error: "Invalid email format." });
+    }
+
+    // Insert into Supabase
+    const { data, error } = await supabase
+      .from('subscribers')
+      .insert([{ email, status: 'active' }])
+      .select();
+
+    if (error) {
+      if (error.code === '23505') { // Unique violation
+        return res.status(409).json({ success: false, error: "This email is already subscribed." });
+      }
+      throw error;
+    }
+
+    // Send Welcome Email
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const { Resend } = await import('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
+        const result = await resend.emails.send({
+          from: 'Praman Network <updates@praman.network>',
+          to: email,
+          subject: 'Welcome to the Praman Engineering Newsletter! 🚀',
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #0B0E14; color: #ffffff; padding: 40px; border-radius: 12px; border: 1px solid #1a2235;">
+              <h2 style="color: #00F0FF; margin-bottom: 24px;">Subscription Confirmed</h2>
+              <p style="font-size: 16px; line-height: 1.6; color: #a0aec0;">
+                Thank you for subscribing! 
+              </p>
+              <p style="font-size: 16px; line-height: 1.6; color: #a0aec0;">
+                You are now on the list to receive our latest zero-knowledge research, protocol updates, and technical deep-dives directly to your inbox whenever a new article is published.
+              </p>
+              <div style="margin: 32px 0;">
+                <a href="https://praman.network/blog" style="background-color: #00F0FF; color: #0B0E14; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;">
+                  Visit the Blog
+                </a>
+              </div>
+            </div>
+          `
+        });
+        console.log("Resend API response:", JSON.stringify(result));
+        if (result.error) {
+          console.error("Resend returned error:", result.error);
+        } else {
+          console.log("Welcome email sent to", email, "id:", result.data?.id);
+        }
+      } catch (emailErr) {
+        console.error("Failed to send welcome email:", emailErr);
+        // We do not fail the request if the welcome email fails, as the user is still subscribed in DB
+      }
+    }
+
+    return res.status(200).json({ success: true, message: "Subscribed successfully!" });
+  } catch (error) {
+    console.error("Subscription Error:", error);
+    return res.status(500).json({ success: false, error: "Internal server error: " + error.message });
   }
 });
 

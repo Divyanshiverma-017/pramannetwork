@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, ExternalLink, Menu, X, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, Menu, X, ArrowUpRight } from 'lucide-react';
 import './Navbar.css';
 
 export function Navbar() {
@@ -15,13 +15,14 @@ export function Navbar() {
         <div className="navbar-inner">
           {/* Logo */}
           <Link to="/" className="navbar-logo">
-            <div className="logo-shield">
-              <Shield size={18} />
-            </div>
-            <div className="logo-text-brand">
-              <span className="logo-praman">PRAMAN</span>
-              <span className="logo-network">NETWORK</span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Praman Network Logo"
+              width="144"
+              height="48"
+              decoding="async"
+              className="navbar-logo-img"
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -56,11 +57,14 @@ export function Navbar() {
         <div className="mobile-drawer">
           <div className="mobile-drawer-header">
             <Link to="/" className="navbar-logo" onClick={() => setMobileOpen(false)}>
-              <div className="logo-shield"><Shield size={18} /></div>
-              <div className="logo-text-brand">
-                <span className="logo-praman">PRAMAN</span>
-                <span className="logo-network">NETWORK</span>
-              </div>
+              <img
+                src="/logo.png"
+                alt="Praman Network Logo"
+                width="144"
+                height="48"
+                decoding="async"
+                className="navbar-logo-img"
+              />
             </Link>
             <button className="btn-icon" onClick={() => setMobileOpen(false)}>
               <X size={20} />

@@ -1,37 +1,72 @@
 /* Newsletter Section Styling — scoped under .blog-page */
+
+/* Reusable glass input used across the blog section */
+.blog-page .glass-input {
+  background: rgba(10, 10, 12, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  color: #F8FAFC;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.blog-page .glass-input::placeholder {
+  color: #64748B;
+  opacity: 1;
+}
+
+.blog-page .glass-input:focus {
+  border-color: rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+}
+
 .blog-page .newsletter-section {
   margin-top: 80px;
   position: relative;
 }
 
 .blog-page .newsletter-card {
-  padding: 56px 40px;
+  padding: 32px 40px;
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.blog-page .newsletter-card:hover {
+  border-color: rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.35);
+}
+
+.blog-page .newsletter-card:hover .btn-primary {
+  background: #33EFFF;
+  box-shadow: 0 0 35px rgba(0, 229, 255, 0.6);
 }
 
 .blog-page .newsletter-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .blog-page .newsletter-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
   color: var(--text-primary);
   margin-bottom: 16px;
 }
 
 .blog-page .newsletter-subtitle {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   color: var(--text-secondary);
   max-width: 540px;
-  margin: 0 auto 36px auto;
-  line-height: 1.6;
+  margin: 0 auto 32px auto;
+  line-height: 1.55;
 }
 
 .blog-page .newsletter-form {
@@ -44,19 +79,33 @@
 }
 
 .blog-page .newsletter-input {
-  flex-grow: 1;
+  flex: 1;
+  min-width: 0;
+  height: 52px;
   padding: 14px 20px;
   font-size: 14px;
 }
 
+.blog-page .newsletter-card .btn-primary {
+  flex-shrink: 0;
+  height: 52px;
+  padding: 0 24px;
+  white-space: nowrap;
+}
+
 @media (max-width: 640px) {
+  .blog-page .newsletter-card {
+    padding: 28px 20px;
+  }
   .blog-page .newsletter-form {
     flex-direction: column;
   }
   .blog-page .newsletter-input {
     width: 100%;
+    height: 52px;
   }
-  .blog-page .btn-primary {
+  .blog-page .newsletter-card .btn-primary {
     width: 100%;
+    height: 52px;
   }
 }

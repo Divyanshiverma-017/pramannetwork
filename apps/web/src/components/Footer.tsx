@@ -11,22 +11,14 @@ export default function Footer() {
           <div className="lg:col-span-2 space-y-6">
             <Link to="/" className="flex items-center space-x-3 group">
               <img 
-                src="/logo.png" 
+                src="/logo2.png" 
                 alt="Praman Network Logo" 
-                width="32"
-                height="32"
+                width="120"
+                height="40"
                 loading="lazy"
                 decoding="async"
-                className="h-8 w-8 object-contain mix-blend-screen transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 filter drop-shadow-[0_0_8px_rgba(13,242,201,0.4)]"
+                className="h-10 w-auto object-contain mix-blend-screen transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 filter drop-shadow-[0_0_8px_rgba(13,242,201,0.4)]"
               />
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-base leading-tight tracking-wider text-white">
-                  PRAMAN
-                </span>
-                <span className="text-[9px] tracking-[0.25em] text-[#0DF2C9] font-medium uppercase font-display">
-                  Network
-                </span>
-              </div>
             </Link>
             
             <p className="text-zinc-400 text-xs max-w-sm font-light leading-relaxed">
