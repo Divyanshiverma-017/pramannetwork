@@ -23,6 +23,15 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar.tsx';
 import { supabase } from '../utils/supabaseClient.ts';
+import { initPraman } from '@praman-network/sdk';
+
+// Initialize once, shared across this page
+const praman = initPraman({
+  apiKey: import.meta.env.VITE_PRAMAN_API_KEY || 'pm_dev_your_api_key_here',
+  network: 'polygon-amoy',
+  idpUrl: 'https://auth.praman.network/',
+  backendUrl: 'https://api.praman.network'
+});
 import SEO from '../components/SEO.tsx';
 import Footer from '../components/Footer.tsx';
 // Dynamic imports for Recharts to split vendor chunks and load on-demand
