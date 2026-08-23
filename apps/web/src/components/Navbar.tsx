@@ -111,6 +111,16 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
               <ArrowUpRight className="h-3 w-3" />
             </a>
 
+            <a
+              href="https://team.praman.network/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[15px] font-medium text-slate-300 transition-all duration-300 hover:text-[#00F0FF] hover:text-glow-cyan flex items-center space-x-0.5"
+            >
+              <span>Team Praman</span>
+              <ArrowUpRight className="h-3 w-3" />
+            </a>
+
             <Link
               to="/blog"
               className={`text-[15px] font-medium transition-all duration-300 hover:text-[#00F0FF] hover:text-glow-cyan relative py-1 ${
@@ -236,6 +246,14 @@ export default function Navbar({ walletAddress, onConnectWallet, isConnecting }:
                 className="block px-3 py-2 text-sm font-semibold tracking-wider text-slate-400 hover:text-white uppercase font-mono"
               >
                 Docs
+              </a>
+              <a
+                href="https://team.praman.network/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-3 py-2 text-sm font-semibold tracking-wider text-slate-400 hover:text-[#0DF2C9] uppercase font-mono"
+              >
+                Team Praman
               </a>
               <Link
                 to="/blog"

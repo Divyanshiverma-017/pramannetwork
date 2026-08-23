@@ -75,6 +75,9 @@ export default function Footer() {
                 <a href="https://auth.praman.network/" target="_blank" rel="noreferrer" className="hover:text-[#0DF2C9] hover:text-glow-cyan transition-all duration-300">PramanAuth</a>
               </li>
               <li>
+                <a href="https://team.praman.network/" target="_blank" rel="noreferrer" className="hover:text-[#0DF2C9] hover:text-glow-cyan transition-all duration-300">Team Praman</a>
+              </li>
+              <li>
                 <Link to="/talent-coming-soon" className="hover:text-[#0DF2C9] hover:text-glow-cyan transition-all duration-300">Praman Talent</Link>
               </li>
               <li>
